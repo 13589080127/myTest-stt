@@ -3,7 +3,7 @@ package com.example.mytest.compont;
 import com.alibaba.fastjson.JSON;
 import com.example.mytest.common.Constants;
 import com.example.mytest.common.exception.BusinessException;
-import com.example.mytest.response.Response;
+import com.example.mytest.model.bo.AppAuthBO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -11,8 +11,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
  * @author Fanjiyu
@@ -29,14 +27,15 @@ public class AppInterceptor implements HandlerInterceptor {
         if (StringUtils.isBlank(appAuth)) {
             throw new BusinessException(-1, String.format("请求头: %s不能为空", Constants.APP_AUTH));
         }
-        return true;
-    }
-
-    private void write(HttpServletResponse response, Response<Void> returnRes) {
-        try (PrintWriter writer = response.getWriter()) {
-            writer.print(JSON.toJSONString(returnRes));
-        } catch (IOException e) {
-            log.error("写数据错误：", e);
+        AppAuthBO appAuthBO = JSON.parseObject(appAuth, AppAuthBO.class);
+        if (!appAuthBO.getAppId().equals("10086")) {
+            log.info("请求应用标识错误：{}", appAuthBO.getAppId());
+            throw BusinessException.valueOf(-1, "请求应用标识错误");
         }
+        if ((Math.abs(appAuthBO.getTimestamp() - (System.currentTimeMillis()/1000)) / 60 )> 20) {
+            log.info("请求服务时间错误:{}",appAuthBO.getTimestamp());
+            throw BusinessException.valueOf(-1, "请求服务时间错误");
+        }
+        return true;
     }
 }

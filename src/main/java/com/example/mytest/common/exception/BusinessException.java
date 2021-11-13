@@ -1,5 +1,6 @@
 package com.example.mytest.common.exception;
 
+import com.example.mytest.common.enums.ErrorCodeEnum;
 import lombok.Data;
 
 /**
@@ -31,5 +32,9 @@ public class BusinessException extends RuntimeException {
 
     public static BusinessException valueOf(int code, String msg) {
         return new BusinessException(code, msg);
+    }
+
+    public static BusinessException valueOf(ErrorCodeEnum errorCodeEnum) {
+        return new BusinessException(errorCodeEnum.getCode(), errorCodeEnum.getMessage());
     }
 }

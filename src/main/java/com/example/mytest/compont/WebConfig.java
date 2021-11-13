@@ -23,12 +23,20 @@ import java.util.List;
 public class WebConfig extends WebMvcConfigurationSupport {
     @Autowired
     private AppInterceptor appInterceptor;
+    @Autowired
+    private AppTokenInterceptor appTokenInterceptor;
+
 
     @Override
     protected void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(appInterceptor)
                 .addPathPatterns("/**");
+        registry.addInterceptor(appTokenInterceptor)
+                .addPathPatterns("/user/**")
+                .excludePathPatterns("/user/login")
+                .excludePathPatterns("/user/reg");
     }
+
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         super.configureMessageConverters(converters);
