@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         User users = new User();
         users.setName(userRegRequest.getName());
         users.setMobile(userRegRequest.getMobile());
-        users.setPassword(org.apache.commons.codec.digest.DigestUtils.sha256Hex(JSON.toJSONString(userRegRequest.getPassword())));
+        users.setPassword(DigestUtils.sha256Hex((userRegRequest.getPassword())));
         users.setCreateTime(new Date());
         users.setUpdateTime(new Date());
         users.setStatus("1");
@@ -65,11 +65,13 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return Response.fail(-1, "用户名或密码错误");
         }
-        if (!user.getPassword().equals(org.apache.commons.codec.digest.DigestUtils.sha256Hex(JSON.toJSONString(userLoginRequest.getPassword())))) {
+        if (!user.getPassword().equals(DigestUtils.sha256Hex(userLoginRequest.getPassword()))) {
             return Response.fail(-1, "用户名或密码错误");
         }
-        String token = UUID.randomUUID().toString();
-        saveToken(token, user, user.getLastLoginToken());
+        String token = UUID.randomUUID().toString().replaceAll("-", "");
+        String oldToken = user.getLastLoginToken();
+        user.setLastLoginToken(token);
+        saveToken(token, user, oldToken);
         updateToken(token, user);
         UserLoginResponse userLoginResponse = new UserLoginResponse();
         userLoginResponse.setToken(token);
@@ -96,7 +98,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public Response<UserCheckPayPasswordResponse> checkPayPassword(UserCheckPayPasswordRequest userCheckPayPasswordRequest, User user) {
         String password = userCheckPayPasswordRequest.getPayPassword();
-        String userPassword = user.getPassword();
+        User dbUser = userMapper.selectById(user.getId());
+        String userPassword = dbUser.getPayPassword();
         if (!DigestUtils.sha256Hex(password).equals(userPassword)) {
             log.info("支付密码错误：{} ", userCheckPayPasswordRequest.getPayPassword());
             throw BusinessException.valueOf(ErrorCodeEnum.PAY_PASS_ERROR);
@@ -157,7 +160,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private void updateToken(String token, User users) {
-        users.setLastLoginToken(token);
         LambdaUpdateWrapper<User> userUpdateWrapper = new LambdaUpdateWrapper<User>()
                 .set(User::getLastLoginToken, token)
                 .set(User::getLastLoginTime, new Date())
