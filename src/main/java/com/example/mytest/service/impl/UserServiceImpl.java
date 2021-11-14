@@ -2,7 +2,6 @@ package com.example.mytest.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.example.mytest.common.Constants;
 import com.example.mytest.common.enums.ErrorCodeEnum;
@@ -117,8 +116,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Response<List<User>> userList() {
-        List<User> list = userMapper.selectList(new QueryWrapper<>());
+    public Response<List<User>> userList(UserListRequest userListRequest) {
+        List<User> list = userMapper.selectList(new LambdaQueryWrapper<User>()
+                .eq(User::getId, userListRequest.getUserId())
+                .eq(User::getName, userListRequest.getName())
+                .eq(User::getMobile, userListRequest.getMobile())
+        );
         return Response.success(list);
     }
 
@@ -132,7 +135,7 @@ public class UserServiceImpl implements UserService {
             throw BusinessException.valueOf(ErrorCodeEnum.PAY_PASS_TOKEN_ERROR);
         }
         User targetUser = userMapper.selectById(userAccountTransRequest.getId());
-        if (targetUser == null || targetUser.getStatus().equals("1")) {
+        if (targetUser == null || !targetUser.getStatus().equals("1")) {
             log.info("用户不存在或用户状态异常 targetUser:{}", JSON.toJSONString(targetUser));
             throw BusinessException.valueOf(ErrorCodeEnum.IN_ACCOUNT_ERROR);
         }

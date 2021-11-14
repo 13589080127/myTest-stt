@@ -58,8 +58,8 @@ public class UserController {
     }
 
     @PostMapping("user/list")
-    public Response<?> userList(HttpServletRequest request) {
-        return userService.userList();
+    public Response<?> userList(HttpServletRequest request, @RequestBody UserListRequest userListRequest) {
+        return userService.userList(userListRequest);
     }
 
     @PostMapping("user/account/trans")

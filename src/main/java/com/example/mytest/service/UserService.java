@@ -58,8 +58,9 @@ public interface UserService {
     /**
      * 用户信息列表
      * @return
+     * @param userListRequest
      */
-    Response<List<User>> userList();
+    Response<List<User>> userList(UserListRequest userListRequest);
 
     /**
      * 转账
