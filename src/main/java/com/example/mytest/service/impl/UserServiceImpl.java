@@ -64,6 +64,10 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return Response.fail(-1, "用户名或密码错误");
         }
+        if (!"1".equals(user.getStatus())) {
+            log.info("用户状态异常");
+            return Response.fail(-1, "用户状态异常");
+        }
         if (!user.getPassword().equals(DigestUtils.sha256Hex(userLoginRequest.getPassword()))) {
             return Response.fail(-1, "用户名或密码错误");
         }
@@ -117,11 +121,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Response<List<User>> userList(UserListRequest userListRequest) {
-        List<User> list = userMapper.selectList(new LambdaQueryWrapper<User>()
-                .eq(User::getId, userListRequest.getUserId())
-                .eq(User::getName, userListRequest.getName())
-                .eq(User::getMobile, userListRequest.getMobile())
-        );
+        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<User>();
+        if (userListRequest.getUserId() != null) {
+            lambdaQueryWrapper.eq(User::getId, userListRequest.getUserId());
+        }
+        if (StringUtils.isNotBlank(userListRequest.getName())) {
+            lambdaQueryWrapper.eq(User::getName, userListRequest.getName());
+        }
+        if (StringUtils.isNotBlank(userListRequest.getMobile())) {
+            lambdaQueryWrapper.eq(User::getMobile, userListRequest.getMobile());
+        }
+        List<User> list = userMapper.selectList(lambdaQueryWrapper);
         return Response.success(list);
     }
 

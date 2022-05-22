@@ -16,3 +16,12 @@ spring:
     lettuce:
       pool:
         max-active: 8
+nacos:
+  config:
+    server-addr: 127.0.0.1:8848
+
+logging:
+  level:
+    org:
+      apache:
+        kafka: info
