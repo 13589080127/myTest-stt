@@ -19,7 +19,7 @@ import java.util.List;
  * @Description:
  * @date 2021/11/1122:05
  */
-@Component
+//@Component
 public class WebConfig extends WebMvcConfigurationSupport {
     @Autowired
     private AppInterceptor appInterceptor;
